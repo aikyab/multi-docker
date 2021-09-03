@@ -1,0 +1,23 @@
+sudo: required
+
+services:
+  -docker
+
+before_install:
+  - docker build -t aikyab/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -it aikyab/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t aikyab/multi-client ./client
+  - docker build -t aikyab/multi-nginx ./nginx
+  - docker build -t aikyab/multi-server ./server
+  - docker build -t aikyab/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  - docker push aikyab/multi-client
+  - docker push aikyab/multi-nginx
+  - docker push aikyab/multi-server
+  - docker push aikyab/multi-worker
